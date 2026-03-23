@@ -149,7 +149,8 @@ const Modulations = (() => {
         const mapping = getSymbolMapping(type, M);
 
         const samplesPerSymbol = 200;
-        const carrierCyclesPerSymbol = 2; // görsel netlik
+        // FSK'da frekans farkı görünür olsun diye 2 cycle, diğerlerinde 1 yeterli
+        const carrierCyclesPerSymbol = type === 'FSK' ? 2 : 1;
         const Ts = 1; // sembol periyodu (normalize)
         const fc = carrierCyclesPerSymbol / Ts;
 
@@ -177,18 +178,19 @@ const Modulations = (() => {
                 let val = 0;
                 switch (type) {
                     case 'ASK':
-                        val = sym.amplitude * Math.cos(2 * Math.PI * fc * ti);
+                        val = sym.amplitude * Math.sin(2 * Math.PI * fc * ti);
                         break;
                     case 'FSK': {
                         const fk = sym.frequency * (fc / carrierCyclesPerSymbol);
-                        val = Math.cos(2 * Math.PI * fk * ti);
+                        val = Math.sin(2 * Math.PI * fk * ti);
                         break;
                     }
                     case 'PSK':
-                        val = Math.cos(2 * Math.PI * fc * ti + sym.phase);
+                        val = Math.sin(2 * Math.PI * fc * ti + sym.phase);
                         break;
                     case 'QAM':
-                        val = sym.I * Math.cos(2 * Math.PI * fc * ti) - sym.Q * Math.sin(2 * Math.PI * fc * ti);
+                        // A·sin(2πfc·t + θ) = I·sin(2πfc·t) + Q·cos(2πfc·t)
+                        val = sym.I * Math.sin(2 * Math.PI * fc * ti) + sym.Q * Math.cos(2 * Math.PI * fc * ti);
                         break;
                 }
                 signal.push(roundN(val, 6));

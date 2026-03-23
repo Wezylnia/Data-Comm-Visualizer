@@ -5,16 +5,16 @@
 const Charts = (() => {
 
     const COLORS = {
-        inactive: '#d1d5db',
-        active: '#6366f1',
-        activeFill: 'rgba(99,102,241,.7)',
-        carrier: '#6366f1',
-        digital: '#10b981',
-        symbolBorder: 'rgba(107,114,128,.35)',
-        circle: 'rgba(156,163,175,.4)',
-        annotation: '#374151',
-        grid: '#f3f4f6',
-        axisLine: '#9ca3af'
+        inactive: '#cbd5e1',
+        active: '#1d4ed8',
+        activeFill: 'rgba(29,78,216,.75)',
+        carrier: '#2563eb',
+        digital: '#059669',
+        symbolBorder: 'rgba(148,163,184,.4)',
+        circle: 'rgba(148,163,184,.45)',
+        annotation: '#1d4ed8',
+        grid: '#f1f5f9',
+        axisLine: '#94a3b8'
     };
 
     const FONT = { family: 'Inter, sans-serif' };

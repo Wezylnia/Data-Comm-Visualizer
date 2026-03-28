@@ -334,5 +334,123 @@ const Charts = (() => {
         Plotly.newPlot(div, [signalTrace, digitalTrace], layout, { responsive: true, displaylogo: false });
     }
 
-    return { drawConstellation, drawWaveform };
+    // ────────────────────────────────────────
+    //  Hat Kodu Dalga Formu
+    // ────────────────────────────────────────
+    function drawLineCodeWaveform(divId, signalData) {
+        const div = document.getElementById(divId);
+        if (!div) return;
+
+        const { t, signal, bits, bitDuration, numBits, isManchester, encoded, type } = signalData;
+
+        // -- Kodlanmış sinyal --
+        const signalTrace = {
+            x: t,
+            y: signal,
+            mode: 'lines',
+            line: { color: COLORS.carrier, width: 2.5 },
+            name: 'Kodlanmış Sinyal',
+            hovertemplate: 't: %{x:.2f}<br>Seviye: %{y}<extra></extra>',
+            showlegend: false
+        };
+
+        const shapes = [];
+        const annotations = [];
+
+        // Bit sınırları
+        for (let i = 1; i < numBits; i++) {
+            shapes.push({
+                type: 'line',
+                x0: i * bitDuration, x1: i * bitDuration,
+                y0: 0, y1: 1, yref: 'paper',
+                line: { color: COLORS.symbolBorder, width: 1.2, dash: 'dash' }
+            });
+        }
+
+        // Manchester orta-bit sınırları
+        if (isManchester) {
+            for (let i = 0; i < numBits; i++) {
+                shapes.push({
+                    type: 'line',
+                    x0: (i + 0.5) * bitDuration, x1: (i + 0.5) * bitDuration,
+                    y0: 0, y1: 1, yref: 'paper',
+                    line: { color: 'rgba(37,99,235,.2)', width: 0.8, dash: 'dot' }
+                });
+            }
+        }
+
+        // Bit etiketleri (grafiğin üstü)
+        for (let i = 0; i < bits.length; i++) {
+            const tMid = (i + 0.5) * bitDuration;
+            annotations.push({
+                x: tMid,
+                y: 1.05,
+                yref: 'paper',
+                text: '<b>' + bits[i] + '</b>',
+                showarrow: false,
+                font: { family: 'Courier New', size: 13, color: COLORS.active },
+                yanchor: 'bottom'
+            });
+        }
+
+        // HDB3 V/B etiketleri
+        if (type === 'HDB3') {
+            encoded.forEach((item, idx) => {
+                if (item.note) {
+                    const tMid = (idx + 0.5) * bitDuration;
+                    annotations.push({
+                        x: tMid,
+                        y: item.level > 0 ? 1.15 : -1.15,
+                        yref: 'y',
+                        text: '<b>' + item.note + '</b>',
+                        showarrow: false,
+                        font: {
+                            family: 'Inter, sans-serif',
+                            size: 11,
+                            color: item.note === 'V' ? '#dc2626' : '#d97706'
+                        }
+                    });
+                }
+            });
+        }
+
+        // Seviye çizgileri
+        const hasZero = signal.some(v => v === 0);
+        const tickvals = hasZero ? [-1, 0, 1] : [-1, 1];
+        const ticktext = hasZero ? ['\u2212V', '0', '+V'] : ['\u2212V', '+V'];
+
+        const maxAbs = Math.max(...signal.map(Math.abs), 1);
+        const yPad = maxAbs * 0.4;
+
+        const layout = {
+            font: FONT,
+            height: 400,
+            margin: { t: 40, r: 20, b: 50, l: 55 },
+            xaxis: {
+                title: 'Zaman (t)',
+                range: [0, numBits * bitDuration],
+                gridcolor: COLORS.grid,
+                zeroline: false,
+                dtick: bitDuration
+            },
+            yaxis: {
+                title: 'Voltaj Seviyesi',
+                range: [-(maxAbs + yPad), maxAbs + yPad],
+                gridcolor: COLORS.grid,
+                zeroline: true,
+                zerolinecolor: '#d1d5db',
+                zerolinewidth: 1,
+                tickvals: tickvals,
+                ticktext: ticktext
+            },
+            shapes: shapes,
+            annotations: annotations,
+            plot_bgcolor: 'white',
+            paper_bgcolor: 'white'
+        };
+
+        Plotly.newPlot(div, [signalTrace], layout, { responsive: true, displaylogo: false });
+    }
+
+    return { drawConstellation, drawWaveform, drawLineCodeWaveform };
 })();

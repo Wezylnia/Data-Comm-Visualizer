@@ -13,7 +13,7 @@
     <!-- Header -->
     <div class="card header-card">
         <h1>Dijital Modülasyon Görselleştirici</h1>
-        <p class="subtitle">ASK · FSK · PSK · QAM — Sembol eşleme, constellation diyagramı ve dalga formu</p>
+        <p class="subtitle">ASK · FSK · PSK · QAM · NRZ-L · NRZ-I · Manchester · AMI · HDB3 — Modülasyon & Hat Kodlama</p>
     </div>
 
     <!-- Input Card -->
@@ -27,10 +27,21 @@
             <div class="input-group">
                 <label for="modType">Modülasyon Tipi</label>
                 <select id="modType">
-                    <option value="ASK">ASK (Amplitude Shift Keying)</option>
-                    <option value="FSK">FSK (Frequency Shift Keying)</option>
-                    <option value="PSK" selected>PSK (Phase Shift Keying)</option>
-                    <option value="QAM">QAM (Quadrature Amplitude Modulation)</option>
+                    <optgroup label="Dijital Modülasyon">
+                        <option value="ASK">ASK (Amplitude Shift Keying)</option>
+                        <option value="FSK">FSK (Frequency Shift Keying)</option>
+                        <option value="PSK" selected>PSK (Phase Shift Keying)</option>
+                        <option value="QAM">QAM (Quadrature Amplitude Modulation)</option>
+                    </optgroup>
+                    <optgroup label="Hat Kodlama (Line Coding)">
+                        <option value="NRZ-L">NRZ-L (Non-Return to Zero Level)</option>
+                        <option value="NRZ-I">NRZ-I (Non-Return to Zero Inverted)</option>
+                        <option value="Manchester">Manchester</option>
+                        <option value="DiffManchester">Differential Manchester</option>
+                        <option value="AMI">AMI (Alternate Mark Inversion)</option>
+                        <option value="Pseudoternary">Pseudoternary</option>
+                        <option value="HDB3">HDB3 (High Density Bipolar 3)</option>
+                    </optgroup>
                 </select>
             </div>
             <div class="input-group">
@@ -82,10 +93,27 @@
             <div id="waveformPlot" class="plot-container plot-wide"></div>
         </div>
     </div>
+
+    <!-- ═══ Hat Kodlama Sonuçları ═══ -->
+    <div id="lineCodeResults" style="display:none;">
+
+        <!-- Info Banner -->
+        <div class="card info-card" id="lcInfoBanner">
+            <div class="info-grid" id="lcInfoGrid"></div>
+            <p id="lcDescription" class="lc-description"></p>
+        </div>
+
+        <!-- Waveform -->
+        <div class="card chart-card">
+            <h2>Hat Kodu Dalga Formu</h2>
+            <div id="lcWaveformPlot" class="plot-container plot-wide"></div>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
 <script src="js/modulations.js"></script>
+<script src="js/line-codes.js"></script>
 <script src="js/charts.js"></script>
 <script src="js/app.js"></script>
 </body>

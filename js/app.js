@@ -13,9 +13,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const elTableHead = document.getElementById('tableHead');
     const elTableBody = document.getElementById('tableBody');
 
+    // Hat kodlama elemanları
+    const elLCResults   = document.getElementById('lineCodeResults');
+    const elLCInfoGrid  = document.getElementById('lcInfoGrid');
+    const elLCDesc      = document.getElementById('lcDescription');
+
+    // Seviye grubu (gizlenecek)
+    const elLevelGroup = elModLevel.closest('.input-group');
+
     // ── Seviye dropdown'ını modülasyon tipine göre güncelle ──
     function updateLevelOptions() {
         const type = elModType.value;
+
+        // Hat kodlama seçiliyse seviye dropdown'ını gizle
+        if (LineCodes.isLineCode(type)) {
+            elLevelGroup.style.display = 'none';
+            return;
+        }
+        elLevelGroup.style.display = '';
+
         const currentVal = parseInt(elModLevel.value);
         const levels = type === 'QAM' ? [4, 8, 16] : [2, 4, 8, 16];
         elModLevel.innerHTML = '';
@@ -25,7 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
             opt.textContent = lv;
             elModLevel.appendChild(opt);
         });
-        // Mevcut değeri korumaya çalış
         if (levels.includes(currentVal)) {
             elModLevel.value = currentVal;
         } else {
@@ -40,19 +55,24 @@ document.addEventListener('DOMContentLoaded', () => {
         elError.textContent = msg;
         elError.style.display = 'block';
         elResults.style.display = 'none';
+        elLCResults.style.display = 'none';
     }
     function hideError() {
         elError.style.display = 'none';
     }
 
     // ── Validation ──
-    function validate(bits, M) {
+    function validate(bits, type) {
         if (!bits || bits.length === 0) {
             return 'Bit dizisi boş olamaz.';
         }
         if (!/^[01]+$/.test(bits)) {
             return 'Bit dizisi sadece 0 ve 1 içermelidir.';
         }
+        if (LineCodes.isLineCode(type)) {
+            return null; // Hat kodlama için ek kısıtlama yok
+        }
+        const M = parseInt(elModLevel.value);
         const n = Modulations.bitsPerSymbol(M);
         if (bits.length < n) {
             return `En az ${n} bit gerekli (${M}-seviyeli modülasyon için sembol başına ${n} bit).`;
@@ -124,15 +144,47 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // ── Hat Kodlama Bilgi Bandı ──
+    function renderLCInfoBanner(type, bits) {
+        const items = [
+            { label: 'Kodlama', value: type },
+            { label: 'Bit Sayısı', value: bits.length },
+        ];
+        elLCInfoGrid.innerHTML = items.map(it =>
+            `<div class="info-item"><span class="info-label">${it.label}</span><span class="info-value">${it.value}</span></div>`
+        ).join('');
+        elLCDesc.textContent = LineCodes.descriptions[type] || '';
+    }
+
     // ── Ana Çizim ──
     function draw() {
         hideError();
         const bits = elBitInput.value.trim();
         const type = elModType.value;
-        const M = parseInt(elModLevel.value);
 
-        const err = validate(bits, M);
+        const err = validate(bits, type);
         if (err) { showError(err); return; }
+
+        // Hat kodlama mı?
+        if (LineCodes.isLineCode(type)) {
+            elResults.style.display = 'none';
+
+            const signalData = LineCodes.generateSignal(type, bits);
+            renderLCInfoBanner(type, bits);
+
+            elLCResults.style.display = 'block';
+
+            // DOM reflow'dan sonra çiz (container boyutu hazır olsun)
+            setTimeout(() => {
+                Charts.drawLineCodeWaveform('lcWaveformPlot', signalData);
+            }, 50);
+            elLCResults.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return;
+        }
+
+        // Modülasyon akışı (mevcut)
+        elLCResults.style.display = 'none';
+        const M = parseInt(elModLevel.value);
 
         // Sinyal üret
         const signalData = Modulations.generateSignal(type, M, bits);
@@ -164,6 +216,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Select değiştiğinde eğer sonuçlar görünüyorsa yeniden çiz
-    elModType.addEventListener('change', () => { if (elResults.style.display !== 'none') draw(); });
-    elModLevel.addEventListener('change', () => { if (elResults.style.display !== 'none') draw(); });
+    elModType.addEventListener('change', () => {
+        if (elResults.style.display !== 'none' || elLCResults.style.display !== 'none') draw();
+    });
+    elModLevel.addEventListener('change', () => {
+        if (elResults.style.display !== 'none') draw();
+    });
 });

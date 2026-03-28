@@ -184,3 +184,17 @@ td.mono { font-family: 'Courier New', monospace; letter-spacing: .06em; font-siz
     body { padding: 12px 8px; }
     .card { padding: 16px; }
 }
+
+/* ── Hat Kodlama ── */
+.lc-description {
+    margin-top: 10px;
+    font-size: .85rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+.lc-table-scroll {
+    max-height: 400px;
+    overflow-y: auto;
+}
+.lc-note-v { color: #dc2626; font-weight: 600; }
+.lc-note-b { color: #d97706; font-weight: 600; }

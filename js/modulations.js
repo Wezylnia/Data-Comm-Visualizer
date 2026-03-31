@@ -143,10 +143,14 @@ const Modulations = (() => {
     }
 
     // ── Sinyal Üretimi ──
-    function generateSignal(type, M, bitString) {
+    function generateSignal(type, M, bitString, carrier) {
         const n = bitsPerSymbol(M);
         const groups = splitBits(bitString, n);
         const mapping = getSymbolMapping(type, M);
+
+        const useCos = (carrier === 'cos');
+        const carrierFn = useCos ? Math.cos : Math.sin;
+        const carrierFnOrtho = useCos ? Math.sin : Math.cos; // QAM ortogonal bileşen
 
         const samplesPerSymbol = 200;
         // FSK'da frekans farkı görünür olsun diye 2 cycle, diğerlerinde 1 yeterli
@@ -178,26 +182,25 @@ const Modulations = (() => {
                 let val = 0;
                 switch (type) {
                     case 'ASK':
-                        val = sym.amplitude * Math.sin(2 * Math.PI * fc * ti);
+                        val = sym.amplitude * carrierFn(2 * Math.PI * fc * ti);
                         break;
                     case 'FSK': {
                         const fk = sym.frequency * (fc / carrierCyclesPerSymbol);
-                        val = Math.sin(2 * Math.PI * fk * ti);
+                        val = carrierFn(2 * Math.PI * fk * ti);
                         break;
                     }
                     case 'PSK':
-                        val = Math.sin(2 * Math.PI * fc * ti + sym.phase);
+                        val = carrierFn(2 * Math.PI * fc * ti + sym.phase);
                         break;
                     case 'QAM':
-                        // A·sin(2πfc·t + θ) = I·sin(2πfc·t) + Q·cos(2πfc·t)
-                        val = sym.I * Math.sin(2 * Math.PI * fc * ti) + sym.Q * Math.cos(2 * Math.PI * fc * ti);
+                        val = sym.I * carrierFn(2 * Math.PI * fc * ti) + sym.Q * carrierFnOrtho(2 * Math.PI * fc * ti);
                         break;
                 }
                 signal.push(roundN(val, 6));
             }
         });
 
-        return { t, signal, symbolInfo, mapping, groups, bitsPerSymbol: n };
+        return { t, signal, symbolInfo, mapping, groups, bitsPerSymbol: n, carrier: carrier || 'sin' };
     }
 
     // ── Public API ──

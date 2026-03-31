@@ -18,6 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const elLCInfoGrid  = document.getElementById('lcInfoGrid');
     const elLCDesc      = document.getElementById('lcDescription');
 
+    // Taşıyıcı fonksiyonu
+    const elCarrierFn = document.getElementById('carrierFn');
+    const elCarrierGroup = elCarrierFn.closest('.input-group');
+
     // Seviye grubu (gizlenecek)
     const elLevelGroup = elModLevel.closest('.input-group');
 
@@ -25,12 +29,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateLevelOptions() {
         const type = elModType.value;
 
-        // Hat kodlama seçiliyse seviye dropdown'ını gizle
+        // Hat kodlama seçiliyse seviye ve taşıyıcı dropdown'larını gizle
         if (LineCodes.isLineCode(type)) {
             elLevelGroup.style.display = 'none';
+            elCarrierGroup.style.display = 'none';
             return;
         }
         elLevelGroup.style.display = '';
+        elCarrierGroup.style.display = '';
 
         const currentVal = parseInt(elModLevel.value);
         const levels = type === 'QAM' ? [4, 8, 16] : [2, 4, 8, 16];
@@ -187,7 +193,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const M = parseInt(elModLevel.value);
 
         // Sinyal üret
-        const signalData = Modulations.generateSignal(type, M, bits);
+        const carrier = elCarrierFn.value;
+        const signalData = Modulations.generateSignal(type, M, bits, carrier);
         const mapping = signalData.mapping;
         const activeIndices = [...new Set(signalData.symbolInfo.map(s => s.index))];
 
@@ -220,6 +227,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (elResults.style.display !== 'none' || elLCResults.style.display !== 'none') draw();
     });
     elModLevel.addEventListener('change', () => {
+        if (elResults.style.display !== 'none') draw();
+    });
+    elCarrierFn.addEventListener('change', () => {
         if (elResults.style.display !== 'none') draw();
     });
 });

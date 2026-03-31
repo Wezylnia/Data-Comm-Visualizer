@@ -177,23 +177,24 @@ const Modulations = (() => {
 
             for (let i = 0; i < samplesPerSymbol; i++) {
                 const ti = tStart + (i / samplesPerSymbol) * Ts;
+                const tLocal = ti - tStart; // sembol-yerel zaman (0'dan başlar)
                 t.push(roundN(ti, 6));
 
                 let val = 0;
                 switch (type) {
                     case 'ASK':
-                        val = sym.amplitude * carrierFn(2 * Math.PI * fc * ti);
+                        val = sym.amplitude * carrierFn(2 * Math.PI * fc * tLocal);
                         break;
                     case 'FSK': {
                         const fk = sym.frequency * (fc / carrierCyclesPerSymbol);
-                        val = carrierFn(2 * Math.PI * fk * ti);
+                        val = carrierFn(2 * Math.PI * fk * tLocal);
                         break;
                     }
                     case 'PSK':
-                        val = carrierFn(2 * Math.PI * fc * ti + sym.phase);
+                        val = carrierFn(2 * Math.PI * fc * tLocal + sym.phase);
                         break;
                     case 'QAM':
-                        val = sym.I * carrierFn(2 * Math.PI * fc * ti) + sym.Q * carrierFnOrtho(2 * Math.PI * fc * ti);
+                        val = sym.I * carrierFn(2 * Math.PI * fc * tLocal) + sym.Q * carrierFnOrtho(2 * Math.PI * fc * tLocal);
                         break;
                 }
                 signal.push(roundN(val, 6));
